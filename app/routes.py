@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, Blueprint
 from app import db
-from app.forms import LoginForm, RegistrationForm, EditProfileForm, EmptyForm
+from app.forms import LoginForm, RegistrationForm, EditProfileForm, EmptyForm, PostForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Post
 import sqlalchemy as sa
@@ -9,13 +9,20 @@ from datetime import datetime, timezone
  
 bp = Blueprint('main', __name__)
  
-@bp.route('/')
-@bp.route('/index')
+@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    posts = db.session.scalars(
-        current_user.following_posts()).all()
-    return render_template('index.html', title='Home', posts=posts)
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Your post is now live!')
+        return redirect(url_for('main.index'))
+    posts = db.session.scalars(current_user.following_posts()).all()
+    return render_template("index.html", title='Home Page', form=form,
+                           posts=posts)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -125,3 +132,10 @@ def unfollow(username):
         return redirect(url_for('main.user', username=username))
     else:
         return redirect(url_for('main.index'))
+    
+@bp.route('/explore')
+@login_required
+def explore():
+    query = sa.select(Post).order_by(Post.timestamp.desc())
+    posts = db.session.scalars(query).all()
+    return render_template('index.html', title='Explore', posts=posts)

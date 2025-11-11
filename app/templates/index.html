@@ -1,23 +1,18 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<h1>Hi, {{ current_user.username }}!</h1>
+{% if form %}
 
-{% block content %}
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% if title %}
-    <title>{{ title }} - Microblog</title>
-    {% else %}
-    <title>Welcome to Microblog!</title>
-    {% endif %}
-</head>
-
-<body>
-    <h1>Hi, {{ current_user.username }}!</h1>
-    {% for post in posts %}
-    <div>
-        <p>{{ post.author.username }} says: <b>{{ post.body }}</b></p>
-    </div>
+<form action="" method="post">
+  {{ form.hidden_tag() }}
+  <p>
+    {{ form.post.label }}<br />
+    {{ form.post(cols=32, rows=4) }}<br />
+    {% for error in form.post.errors %}
+    <span style="color: red">[{{ error }}]</span>
     {% endfor %}
-</body>
-{% endblock %}
+  </p>
+  <p>{{ form.submit() }}</p>
+</form>
+{% endif %}     {% for post in posts %}
+        {% include '_post.html' %}
+    {% endfor %} {% endblock %}
